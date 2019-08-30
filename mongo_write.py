@@ -1,6 +1,10 @@
 import datetime
 
 from pymongo import MongoClient
+import pprint
+import io
+from PIL import Image
+from PIL import ImageDraw
 
 # Setup mongo connection
 client = MongoClient("mongodb://utadmin:ee382v@zlotnik.mynetgear.com:27017")
@@ -13,15 +17,16 @@ client = MongoClient("mongodb://utadmin:ee382v@zlotnik.mynetgear.com:27017")
 # EXAMPLE 1
 db = client.testdb
 my_collection = db.post
-for record in my_collection.find():
-    print(record["_id"])
+# for record in my_collection.find():
+#    print(record["_id"])
 
 
 # EXAMPLE 2
 db = client["testdb"]
 post_collection = db["post"]
-for record in  post_collection.find():
-    print(record["_id"])
+# for record in  post_collection.find():
+#    print(record["_id"])
+
 
 # Creating a collection for users
 user_collection = db["users"]
@@ -52,6 +57,18 @@ post = {
 post_insert = post_collection.insert_one(post)
 post_id = post_insert.inserted_id
 
-selected_post = post_collection.find({"_id": post_id})
+# Select the post we just inserted
+selected_post = post_collection.find_one({"_id": post_id})
 
-print(selected_post["comment"])
+read_image_bytes = selected_post["image"]
+
+image_file = open("images/car0.png", "rb")
+image_binary = image_file.read()
+stream = io.BytesIO(read_image_bytes)
+
+img = Image.open(stream)
+img.show()
+
+# Deleting the records (documents) we created
+user_collection.delete_one({"_id":user_id})
+post_collection.delete_one({"_id":post_id})
